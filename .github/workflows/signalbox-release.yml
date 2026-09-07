@@ -18,6 +18,9 @@ jobs:
     if: github.repository == 'KeenWill/codex'
     runs-on: ubuntu-24.04
     timeout-minutes: 180
+    env:
+      CARGO_PROFILE_DEV_DEBUG: "0"
+      CARGO_PROFILE_TEST_DEBUG: "0"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Runner capacity
@@ -26,19 +29,23 @@ jobs:
           free -h
           df -h .
       - uses: dtolnay/rust-toolchain@e081816240890017053eacbb1bdf337761dc5582
+      - uses: ./.github/actions/setup-ci
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcap-dev pkg-config libssl-dev clang cmake
-          cargo install --locked just cargo-nextest
+          sudo apt-get install -y libcap-dev pkg-config libssl-dev clang cmake bubblewrap
+      - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532
+        with:
+          tool: nextest
+          version: 0.9.103
       - uses: ./.github/actions/setup-rusty-v8
         with:
           target: x86_64-unknown-linux-gnu
+      - name: Build runtime test helpers
+        working-directory: codex-rs
+        run: cargo build --bin codex --bin codex-code-mode-host --bin codex-linux-sandbox --bin codex-execve-wrapper --bin test_stdio_server --bin bwrap
       - name: Exec and app-server tests
         working-directory: codex-rs
-        env:
-          CARGO_PROFILE_DEV_DEBUG: "0"
-          CARGO_PROFILE_TEST_DEBUG: "0"
         run: just test -p codex-exec -p codex-app-server
   build:
     if: github.repository == 'KeenWill/codex'
@@ -118,7 +125,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signalbox-linux
           path: dist
