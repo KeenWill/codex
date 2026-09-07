@@ -1,12 +1,15 @@
 # Signalbox Codex
 
-The `signalbox` branch carries two patches on the stable upstream release named
+The `signalbox` branch carries three patches on the stable upstream release named
 in `.signalbox-base`:
 
 - Exec JSONL errors retain `codexErrorInfo` and `willRetry`. Terminal
   `turn.failed` errors always report `willRetry: false`.
 - `codex app-server --ignore-user-config --ignore-rules` forwards the existing
   configuration loader overrides.
+- The guardian analytics test waits for its parent-turn event before shutting
+  down app-server. This test-only fix is carried because the release workflow
+  runs the app-server crate's tests.
 
 `signalbox-sync.yml` checks upstream stable `rust-vX.Y.Z` tags every six hours
 and supports manual dispatch. It rebases the carried commits with
