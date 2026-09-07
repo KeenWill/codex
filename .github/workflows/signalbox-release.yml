@@ -46,6 +46,10 @@ jobs:
           workspaces: codex-rs
           key: signalbox-tests
           cache-on-failure: true
+      - name: Refresh V8 native archive after cache restore
+        working-directory: codex-rs
+        # rusty_v8 stores its archive outside Cargo's cached build directories.
+        run: cargo clean -p v8
       - name: Build runtime test helpers
         working-directory: codex-rs
         run: cargo build --bin codex --bin codex-code-mode-host --bin codex-linux-sandbox --bin codex-execve-wrapper --bin test_stdio_server --bin bwrap
@@ -97,6 +101,9 @@ jobs:
           workspaces: codex-rs
           key: signalbox-musl
           cache-on-failure: true
+      - name: Refresh V8 native archive after cache restore
+        # rusty_v8 stores its archive outside Cargo's cached build directories.
+        run: cargo clean -p v8 --target "$TARGET"
       - name: Build and hash bwrap
         run: |
           cargo build --release --target "$TARGET" --bin bwrap
