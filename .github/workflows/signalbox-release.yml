@@ -41,6 +41,11 @@ jobs:
       - uses: ./.github/actions/setup-rusty-v8
         with:
           target: x86_64-unknown-linux-gnu
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          workspaces: codex-rs
+          key: signalbox-tests
+          cache-on-failure: true
       - name: Build runtime test helpers
         working-directory: codex-rs
         run: cargo build --bin codex --bin codex-code-mode-host --bin codex-linux-sandbox --bin codex-execve-wrapper --bin test_stdio_server --bin bwrap
@@ -87,6 +92,11 @@ jobs:
       - uses: ./.github/actions/setup-rusty-v8
         with:
           target: x86_64-unknown-linux-musl
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          workspaces: codex-rs
+          key: signalbox-musl
+          cache-on-failure: true
       - name: Build and hash bwrap
         run: |
           cargo build --release --target "$TARGET" --bin bwrap

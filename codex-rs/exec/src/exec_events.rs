@@ -93,7 +93,11 @@ pub struct ItemUpdatedEvent {
 pub struct ThreadErrorEvent {
     pub message: String,
     #[serde(default, rename = "codexErrorInfo")]
-    #[ts(rename = "codexErrorInfo")]
+    // App-server protocol TS derives are disabled outside its own tests.
+    #[ts(
+        rename = "codexErrorInfo",
+        type = "string | Record<string, unknown> | null"
+    )]
     pub codex_error_info: Option<CodexErrorInfo>,
     #[serde(default, rename = "willRetry")]
     #[ts(rename = "willRetry")]
