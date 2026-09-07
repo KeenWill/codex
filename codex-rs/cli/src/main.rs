@@ -555,6 +555,14 @@ struct AppServerCommand {
     #[arg(long = "strict-config", default_value_t = false)]
     strict_config: bool,
 
+    /// Ignore user config.toml.
+    #[arg(long = "ignore-user-config")]
+    ignore_user_config: bool,
+
+    /// Ignore user and project exec policy rules.
+    #[arg(long = "ignore-rules")]
+    ignore_rules: bool,
+
     /// Transport endpoint URL. Supported values: `stdio://` (default),
     /// `unix://`, `unix://PATH`, `ws://IP:PORT`, `off`.
     #[arg(
@@ -1247,6 +1255,8 @@ async fn cli_main(
                 subcommand,
                 code_mode_host,
                 strict_config: app_server_strict_config,
+                ignore_user_config,
+                ignore_rules,
                 listen,
                 stdio,
                 remote_control,
@@ -1287,7 +1297,11 @@ async fn cli_main(
                     codex_app_server::run_main_with_transport_options(
                         arg0_paths.clone(),
                         root_config_overrides,
-                        LoaderOverrides::default(),
+                        LoaderOverrides {
+                            ignore_user_config,
+                            ignore_user_and_project_exec_policy_rules: ignore_rules,
+                            ..Default::default()
+                        },
                         strict_config,
                         analytics_default_enabled,
                         transport,
