@@ -31,7 +31,9 @@ code-mode host, Responses API proxy, and bwrap companions.
 Releases use `rust-vX.Y.Z-signalbox.N`, starting at 1 for each upstream version.
 New commits on the same base increment N; rerunning an already released commit
 does not publish another revision. Assets are
-`codex-x86_64-unknown-linux-musl.tar.gz` and `SHA256SUMS`.
+`codex-x86_64-unknown-linux-musl.tar.gz`, `SHA256SUMS` for the tarball, and
+`BINARY_SHA256SUMS` for the extracted `codex` executable. Startup can verify
+the exact fork binary even when several revisions share an upstream version.
 `codex --version` retains the upstream version, without the fork suffix.
 
 Add patches with ordinary commits to `signalbox`, then push. Consumers pin

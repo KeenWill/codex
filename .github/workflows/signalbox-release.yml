@@ -126,6 +126,7 @@ jobs:
           for binary in codex codex-code-mode-host codex-responses-api-proxy; do
             strip --strip-debug --strip-unneeded "target/$TARGET/release/$binary"
           done
+          (cd "target/$TARGET/release" && sha256sum codex) > ../dist/BINARY_SHA256SUMS
           tar -czf "../dist/codex-$TARGET.tar.gz" -C "target/$TARGET/release" codex codex-code-mode-host codex-responses-api-proxy bwrap
           cd ../dist
           sha256sum "codex-$TARGET.tar.gz" > SHA256SUMS
