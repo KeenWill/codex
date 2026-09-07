@@ -51,7 +51,7 @@ jobs:
         run: cargo build --bin codex --bin codex-code-mode-host --bin codex-linux-sandbox --bin codex-execve-wrapper --bin test_stdio_server --bin bwrap
       - name: Exec and app-server tests
         working-directory: codex-rs
-        run: just test -p codex-exec -p codex-app-server
+        run: just test -p codex-exec -p codex-app-server --test-threads=1
   build:
     if: github.repository == 'KeenWill/codex'
     runs-on: ubuntu-24.04
