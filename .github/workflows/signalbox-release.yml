@@ -103,7 +103,7 @@ jobs:
           cache-on-failure: true
       - name: Refresh V8 native archive after cache restore
         # rusty_v8 stores its archive outside Cargo's cached build directories.
-        run: cargo clean -p v8 --target "$TARGET"
+        run: cargo clean --release -p v8 --target "$TARGET"
       - name: Build and hash bwrap
         run: |
           cargo build --release --target "$TARGET" --bin bwrap
