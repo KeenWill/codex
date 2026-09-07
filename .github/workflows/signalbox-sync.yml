@@ -9,7 +9,7 @@ permissions:
   issues: write
   actions: write
 concurrency:
-  group: signalbox-publish
+  group: signalbox-sync
   cancel-in-progress: false
 jobs:
   sync:
