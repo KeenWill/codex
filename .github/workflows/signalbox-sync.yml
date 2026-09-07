@@ -1,3 +1,4 @@
+# Kept on the fork default branch so schedule and dispatch are registered.
 name: signalbox-sync
 on:
   schedule:

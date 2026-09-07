@@ -82,14 +82,14 @@ jobs:
           target: x86_64-unknown-linux-musl
       - name: Build and hash bwrap
         run: |
-          cargo build --locked --release --target "$TARGET" --bin bwrap
+          cargo build --release --target "$TARGET" --bin bwrap
           strip --strip-debug --strip-unneeded "target/$TARGET/release/bwrap"
           digest=$(sha256sum "target/$TARGET/release/bwrap" | cut -d ' ' -f 1)
           echo "CODEX_BWRAP_SHA256=$digest" >> "$GITHUB_ENV"
       - name: Build multitool and companion binaries
         run: |
-          cargo build --locked --release -p codex-cli --target "$TARGET" --bin codex
-          cargo build --locked --release --target "$TARGET" --bin codex-code-mode-host --bin codex-responses-api-proxy
+          cargo build --release -p codex-cli --target "$TARGET" --bin codex
+          cargo build --release --target "$TARGET" --bin codex-code-mode-host --bin codex-responses-api-proxy
       - name: Check upstream version and app-server flags
         run: |
           binary="target/$TARGET/release/codex"
