@@ -28,7 +28,7 @@ crates and builds the Linux x86_64 musl multitool with upstream's Zig, libcap,
 V8, and bwrap build steps on GitHub-hosted runners. The tarball also includes the
 code-mode host, Responses API proxy, and bwrap companions.
 
-Releases use `rust-vX.Y.Z-signalbox.N`, starting at 1 for each upstream version.
+Releases use `rust-vX.Y.Z-fork.N`, starting at 1 for each upstream version.
 New commits on the same base increment N; rerunning an already released commit
 does not publish another revision. Assets are
 `codex-x86_64-unknown-linux-musl.tar.gz`, `SHA256SUMS` for the tarball, and

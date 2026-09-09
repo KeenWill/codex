@@ -154,7 +154,7 @@ jobs:
         run: |
           set -euo pipefail
           base=$(cat .signalbox-base)
-          prefix="$base-signalbox."
+          prefix="$base-fork."
           revision=0
           while read -r tag; do
             if [[ "$tag" == "$prefix"* ]]; then
@@ -169,4 +169,4 @@ jobs:
             fi
           done < <(git tag -l "$prefix*")
           tag="$prefix$((revision + 1))"
-          gh release create "$tag" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$tag" --notes "Codex ${base#rust-v} with the Signalbox patches. See README-signalbox.md at this tag. The binary reports the upstream version unchanged." --latest
+          gh release create "$tag" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$tag" --notes "Codex ${base#rust-v} with the carried fork patches. See README-signalbox.md at this tag. The binary reports the upstream version unchanged." --latest
