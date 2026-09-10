@@ -1,3 +1,4 @@
+use codex_app_server_protocol::CodexErrorInfo;
 use codex_protocol::models::WebSearchAction;
 use serde::Deserialize;
 use serde::Serialize;
@@ -91,6 +92,16 @@ pub struct ItemUpdatedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, TS)]
 pub struct ThreadErrorEvent {
     pub message: String,
+    #[serde(default, rename = "codexErrorInfo")]
+    // App-server protocol TS derives are disabled outside its own tests.
+    #[ts(
+        rename = "codexErrorInfo",
+        type = "string | Record<string, unknown> | null"
+    )]
+    pub codex_error_info: Option<CodexErrorInfo>,
+    #[serde(default, rename = "willRetry")]
+    #[ts(rename = "willRetry")]
+    pub will_retry: bool,
 }
 
 /// Canonical representation of a thread item and its domain-specific payload.

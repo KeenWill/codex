@@ -61,15 +61,37 @@ export type ItemCompletedEvent = {
   item: ThreadItem;
 };
 
+/** Structured error information emitted by Codex. */
+export type CodexErrorInfo =
+  | "contextWindowExceeded"
+  | "sessionBudgetExceeded"
+  | "usageLimitExceeded"
+  | "rateLimitExceeded"
+  | "serverOverloaded"
+  | "cyberPolicy"
+  | "misalignmentPolicyViolation"
+  | { httpConnectionFailed: { httpStatusCode: number | null } }
+  | { responseStreamConnectionFailed: { httpStatusCode: number | null } }
+  | "internalServerError"
+  | "unauthorized"
+  | "badRequest"
+  | "threadRollbackFailed"
+  | "sandboxError"
+  | { responseStreamDisconnected: { httpStatusCode: number | null } }
+  | { responseTooManyFailedAttempts: { httpStatusCode: number | null } }
+  | { activeTurnNotSteerable: { turnKind: "review" | "compact" } }
+  | "other";
+
 /** Fatal error emitted by the stream. */
 export type ThreadError = {
   message: string;
+  codexErrorInfo: CodexErrorInfo | null;
+  willRetry: boolean;
 };
 
 /** Represents an unrecoverable error emitted directly by the event stream. */
-export type ThreadErrorEvent = {
+export type ThreadErrorEvent = ThreadError & {
   type: "error";
-  message: string;
 };
 
 /** Top-level JSONL events emitted by codex exec. */
