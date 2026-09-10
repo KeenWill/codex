@@ -139,6 +139,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      issues: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
@@ -170,3 +171,12 @@ jobs:
           done < <(git tag -l "$prefix*")
           tag="$prefix$((revision + 1))"
           gh release create "$tag" dist/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$tag" --notes "Codex ${base#rust-v} with the carried fork patches. See README-fork.md at this tag. The binary reports the upstream version unchanged." --latest
+      - name: Close the resolved rebase issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          title="rebase conflict: $(cat .fork-base)"
+          while read -r issue; do
+            gh issue close "$issue" --repo "$GITHUB_REPOSITORY" --reason completed --comment "Resolved by the published fork release."
+          done < <(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number")
