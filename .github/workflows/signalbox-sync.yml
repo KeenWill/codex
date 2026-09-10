@@ -36,7 +36,7 @@ jobs:
             exit 0
           fi
           releases=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[].tag_name')
-          if grep -q "^${latest//./\.}-signalbox\." <<< "$releases"; then
+          if grep -q "^${latest//./\.}-fork\." <<< "$releases"; then
             echo "$latest already released"
             exit 0
           fi
