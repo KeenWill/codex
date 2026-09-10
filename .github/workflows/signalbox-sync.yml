@@ -31,11 +31,16 @@ jobs:
           git fetch https://github.com/openai/codex.git '+refs/tags/rust-v*:refs/tags/rust-v*'
           latest=$(git tag -l 'rust-v*' | grep -E '^rust-v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
           previous=$(cat .signalbox-base)
+          releases=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[].tag_name')
           if [[ "$latest" == "$previous" ]]; then
-            echo "Already based on $latest"
+            if grep -q "^${latest//./\.}-fork\." <<< "$releases"; then
+              echo "Already based on and released from $latest"
+              exit 0
+            fi
+            echo "Already based on $latest; retrying its missing release"
+            gh workflow run signalbox-release.yml --repo "$GITHUB_REPOSITORY" --ref signalbox
             exit 0
           fi
-          releases=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[].tag_name')
           if grep -q "^${latest//./\.}-fork\." <<< "$releases"; then
             echo "$latest already released"
             exit 0
