@@ -1628,10 +1628,10 @@ fn turn_failure_prefers_structured_error_message() {
         error: TurnError {
             misalignment: None,
             message: "backend failed".to_string(),
-            codex_error_info: None,
+            codex_error_info: Some(codex_app_server_protocol::CodexErrorInfo::Unauthorized),
             additional_details: Some("request id abc".to_string()),
         },
-        will_retry: false,
+        will_retry: true,
         thread_id: "thread-1".to_string(),
         turn_id: "turn-1".to_string(),
     }));
@@ -1640,6 +1640,8 @@ fn turn_failure_prefers_structured_error_message() {
         CollectedThreadEvents {
             events: vec![ThreadEvent::Error(ThreadErrorEvent {
                 message: "backend failed (request id abc)".to_string(),
+                codex_error_info: Some(codex_app_server_protocol::CodexErrorInfo::Unauthorized),
+                will_retry: true,
             })],
             status: CodexStatus::Running,
         }
@@ -1666,6 +1668,8 @@ fn turn_failure_prefers_structured_error_message() {
             events: vec![ThreadEvent::TurnFailed(TurnFailedEvent {
                 error: ThreadErrorEvent {
                     message: "backend failed (request id abc)".to_string(),
+                    codex_error_info: Some(codex_app_server_protocol::CodexErrorInfo::Unauthorized),
+                    will_retry: false,
                 },
             })],
             status: CodexStatus::InitiateShutdown,

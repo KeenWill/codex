@@ -1,0 +1,65 @@
+# Kept on the fork default branch so schedule and dispatch are registered.
+name: fork-sync
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+  actions: write
+concurrency:
+  group: fork-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.repository == 'KeenWill/codex'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Rebase onto the newest stable upstream release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git fetch https://github.com/openai/codex.git '+refs/tags/rust-v*:refs/tags/rust-v*'
+          latest=$(git tag -l 'rust-v*' | grep -E '^rust-v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          previous=$(cat .fork-base)
+          releases=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases" --jq '.[].tag_name')
+          if [[ "$latest" == "$previous" ]]; then
+            if grep -q "^${latest//./\.}-fork\." <<< "$releases"; then
+              echo "Already based on and released from $latest"
+              exit 0
+            fi
+            echo "Already based on $latest; retrying its missing release"
+            gh workflow run fork-release.yml --repo "$GITHUB_REPOSITORY" --ref main
+            exit 0
+          fi
+          if grep -q "^${latest//./\.}-fork\." <<< "$releases"; then
+            echo "$latest already released"
+            exit 0
+          fi
+          old_head=$(git rev-parse HEAD)
+          if ! git rebase --onto "$latest" "$previous" main; then
+            conflicts=$(git diff --name-only --diff-filter=U)
+            git rebase --abort
+            title="rebase conflict: $latest"
+            count=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --search "$title in:title" --json title --jq "[.[] | select(.title == \"$title\")] | length")
+            if [[ "$count" == 0 ]]; then
+              printf 'Rebase from `%s` onto `%s` failed.\n\nConflicting files:\n```\n%s\n```\n' "$previous" "$latest" "$conflicts" > "$RUNNER_TEMP/conflict.md"
+              gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$RUNNER_TEMP/conflict.md"
+            fi
+            exit 1
+          fi
+          printf '%s\n' "$latest" > .fork-base
+          git add .fork-base
+          git commit -m "Update fork upstream base to $latest"
+          git push --force-with-lease="refs/heads/main:$old_head" origin HEAD:main
+          # GITHUB_TOKEN pushes do not trigger push workflows; dispatch explicitly.
+          gh workflow run fork-release.yml --repo "$GITHUB_REPOSITORY" --ref main
