@@ -101,6 +101,8 @@ jobs:
           workspaces: codex-rs
           key: fork-musl
           cache-on-failure: true
+      - name: Stamp build commit
+        run: echo "STABLE_GIT_COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Refresh V8 native archive after cache restore
         # rusty_v8 stores its archive outside Cargo's cached build directories.
         run: cargo clean --release -p v8 --target "$TARGET"
