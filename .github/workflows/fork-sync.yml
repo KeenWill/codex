@@ -13,9 +13,12 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sync:
-    if: github.repository == 'KeenWill/codex'
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'KeenWill/codex') }}
+    runs-on: cluster-codex-host
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: main

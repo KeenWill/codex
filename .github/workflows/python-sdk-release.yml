@@ -11,9 +11,9 @@ concurrency:
 
 jobs:
   resolve-python-release:
-    if: github.repository == 'openai/codex'
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
     name: resolve-python-release
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     permissions:
       contents: read
     outputs:
@@ -79,12 +79,12 @@ jobs:
   # building the SDK package. PyPI does not support reusable workflows as
   # Trusted Publishers.
   publish-python-runtime:
-    if: github.repository == 'openai/codex'
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
     name: publish-python-runtime
     needs:
       - prepare-python-runtime
       - resolve-python-release
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     environment: pypi
     permissions:
       contents: read
@@ -158,12 +158,12 @@ jobs:
           exit 1
 
   build-python-sdk:
-    if: github.repository == 'openai/codex'
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
     name: build-python-sdk
     needs:
       - publish-python-runtime
       - resolve-python-release
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     permissions:
       contents: read
 
@@ -216,9 +216,10 @@ jobs:
           if-no-files-found: error
 
   publish-python-sdk:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: publish-python-sdk
     needs: build-python-sdk
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     environment: pypi
     permissions:
       contents: read

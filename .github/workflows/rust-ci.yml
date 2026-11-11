@@ -6,8 +6,9 @@ on:
 jobs:
   # --- Detect changed paths so the fast PR workflow only runs relevant jobs ---
   changed:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Detect changed areas
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex-host
     outputs:
       argument_comment_lint: ${{ steps.detect.outputs.argument_comment_lint }}
       argument_comment_lint_package: ${{ steps.detect.outputs.argument_comment_lint_package }}
@@ -59,9 +60,9 @@ jobs:
   # --- Fast Cargo-native PR checks -------------------------------------------
   general:
     name: Format / etc
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex-host
     needs: changed
-    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true') }}
     defaults:
       run:
         working-directory: codex-rs
@@ -84,9 +85,9 @@ jobs:
 
   cargo_shear:
     name: cargo shear
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex-host
     needs: changed
-    if: ${{ needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true') }}
     defaults:
       run:
         working-directory: codex-rs
@@ -108,9 +109,9 @@ jobs:
 
   argument_comment_lint_package:
     name: Argument comment lint package
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex-host
     needs: changed
-    if: ${{ needs.changed.outputs.argument_comment_lint_package == 'true' }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.changed.outputs.argument_comment_lint_package == 'true') }}
     env:
       CARGO_DYLINT_VERSION: 5.0.0
       DYLINT_LINK_VERSION: 5.0.0
@@ -162,8 +163,9 @@ jobs:
         uses: ./.github/actions/check-clean-worktree
 
   argument_comment_lint_prebuilt:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner) || contains(matrix.runner, '-linux-x64'))) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
     timeout-minutes: ${{ matrix.timeout_minutes }}
     needs: changed
     environment:
@@ -226,8 +228,8 @@ jobs:
         argument_comment_lint_package,
         argument_comment_lint_prebuilt,
       ]
-    if: always()
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
+    runs-on: cluster-codex-host
     steps:
       - name: Summarize
         shell: bash

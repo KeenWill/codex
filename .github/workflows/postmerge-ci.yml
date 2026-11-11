@@ -24,8 +24,8 @@ jobs:
     needs:
       - rust-ci-full
       - v8-canary
-    if: ${{ always() }}
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
+    runs-on: cluster-codex-host
     steps:
       # Postmerge runs use the pushed main commit, so this helper always comes
       # from the same revision that defined the parent workflow.

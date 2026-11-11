@@ -25,7 +25,7 @@ runs:
       run: echo "CI_BUILD_ROOT=$HOME/.cache/codex-ci" >> "$GITHUB_ENV"
 
     - name: Enable unprivileged user namespaces (Linux)
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && runner.environment == 'github-hosted'
       shell: bash
       run: |
         sudo sysctl -w kernel.unprivileged_userns_clone=1

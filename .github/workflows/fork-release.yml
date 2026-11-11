@@ -15,8 +15,8 @@ env:
   CODEX_REPO_ROOT: ${{ github.workspace }}
 jobs:
   tests:
-    if: github.repository == 'KeenWill/codex'
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'KeenWill/codex') }}
+    runs-on: cluster-codex-host
     timeout-minutes: 180
     env:
       CARGO_PROFILE_DEV_DEBUG: "0"
@@ -57,8 +57,8 @@ jobs:
         working-directory: codex-rs
         run: just test -p codex-exec -p codex-app-server --test-threads=1
   build:
-    if: github.repository == 'KeenWill/codex'
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'KeenWill/codex') }}
+    runs-on: cluster-codex-host
     timeout-minutes: 180
     env:
       TARGET: x86_64-unknown-linux-musl
@@ -137,12 +137,16 @@ jobs:
           name: fork-linux
           path: dist/*
   release:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: [tests, build]
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex-host
     permissions:
       contents: write
       issues: write
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0

@@ -25,7 +25,8 @@ concurrency:
 
 jobs:
   tag-check:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: cluster-codex-host
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -58,9 +59,10 @@ jobs:
           echo "::endgroup::"
 
   build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: tag-check
     name: Build - ${{ matrix.runner }} - ${{ matrix.target }} - ${{ matrix.bundle }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner) || contains(matrix.runner, '-linux-x64')) && 'cluster-codex-host' || matrix.runner }}
     # Release builds can take a long time, so leave some headroom to avoid
     # having to restart the full workflow due to a timeout.
     timeout-minutes: 90
@@ -481,9 +483,10 @@ jobs:
             codex-rs/dist/${{ matrix.target }}/*
 
   sign-macos-binaries:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: build
     name: Sign macOS binaries - ${{ matrix.target }} - ${{ matrix.bundle }}
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     timeout-minutes: 45
     environment:
       name: codesigning
@@ -879,9 +882,10 @@ jobs:
           if-no-files-found: error
 
   sign-macos-dmg:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: package-macos
     name: Sign macOS DMG - ${{ matrix.target }}
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     timeout-minutes: 45
     environment:
       name: codesigning
@@ -1186,12 +1190,13 @@ jobs:
       publish: true
 
   stage-npm-packages:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: stage npm packages
     needs:
       - build
       - finalize-macos
       - build-windows
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     permissions:
       contents: read
 
@@ -1245,18 +1250,9 @@ jobs:
       - build-windows
       - argument-comment-lint-release-assets
       - stage-npm-packages
-    if: >-
-      ${{
-        always() &&
-        needs.tag-check.result == 'success' &&
-        needs.build.result == 'success' &&
-        needs.finalize-macos.result == 'success' &&
-        needs.build-windows.result == 'success' &&
-        needs.argument-comment-lint-release-assets.result == 'success' &&
-        needs.stage-npm-packages.result == 'success'
-      }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always() && needs.tag-check.result == 'success' && needs.build.result == 'success' && needs.finalize-macos.result == 'success' && needs.build-windows.result == 'success' && needs.argument-comment-lint-release-assets.result == 'success' && needs.stage-npm-packages.result == 'success') }}
     name: release
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     permissions:
       contents: write
     outputs:
@@ -1420,9 +1416,10 @@ jobs:
       stage: finalize
 
   publish-dotslash:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: publish-dotslash
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     permissions:
       contents: write
 
@@ -1450,20 +1447,20 @@ jobs:
   # npm docs: https://docs.npmjs.com/trusted-publishers
   publish-npm:
     # Publish to npm for stable releases, numbered alphas, and alpha hotfixes.
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.release.result == 'success' &&
-        needs.release.outputs.should_publish_npm == 'true'
-      }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && needs.release.outputs.should_publish_npm == 'true') }}
     name: publish-npm
     needs: release
+    # npm trusted publishing does not support self-hosted runners.
+    # Keep this exception until an authorized publishing mechanism is available.
     runs-on: ubuntu-latest
     permissions:
       id-token: write # Required for OIDC
       contents: read
 
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Setup Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -1613,13 +1610,8 @@ jobs:
     needs: release
     # Only trigger the deploy for a stable release.
     # The deploy updates developers.openai.com with the new config schema json file.
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.release.result == 'success' &&
-        !contains(needs.release.outputs.version, '-')
-      }}
-    runs-on: ubuntu-latest
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && !contains(needs.release.outputs.version, '-')) }}
+    runs-on: cluster-codex-host
     continue-on-error: true
     permissions: {}
     environment:
@@ -1642,15 +1634,10 @@ jobs:
     needs: release
     # Only publish stable/mainline releases to WinGet; pre-releases include a
     # '-' in the semver string (e.g., 1.2.3-alpha.1).
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.release.result == 'success' &&
-        !contains(needs.release.outputs.version, '-')
-      }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && !contains(needs.release.outputs.version, '-')) }}
     # This job only invokes a GitHub Action to open/update the winget-pkgs PR;
     # it does not execute Windows-only tooling, so Linux is sufficient.
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
     permissions:
       contents: read
     environment:
@@ -1670,16 +1657,7 @@ jobs:
 
   update-branch:
     name: Update latest-alpha-cli branch
-    if: >-
-      ${{
-        !cancelled() &&
-        needs.release.result == 'success' &&
-        needs.publish-r2.result == 'success' &&
-        (
-          needs.release.outputs.should_publish_npm != 'true' ||
-          needs.publish-npm.result == 'success'
-        )
-      }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && needs.publish-r2.result == 'success' && ( needs.release.outputs.should_publish_npm != 'true' || needs.publish-npm.result == 'success' )) }}
     permissions:
       contents: write
     # R2 waits for the GitHub release and DotSlash release-asset uploads.
@@ -1687,9 +1665,12 @@ jobs:
       - release
       - publish-r2
       - publish-npm
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex-host
 
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Update latest-alpha-cli branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   test:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     # PRs use the sharded Windows cross-compiled test jobs below. Post-merge
     # pushes to main also run the native Windows test job for broader Windows
     # signal without putting PR latency back on the critical path. When
@@ -43,7 +44,7 @@ jobs:
           # - os: ubuntu-24.04-arm
           #   target: aarch64-unknown-linux-gnu
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ ((contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os) || contains(matrix.os, '-linux-x64'))) && 'cluster-codex-host' || (matrix.os) }}
 
     # Configure a human readable name for each job
     name: Bazel test on ${{ matrix.os }} for ${{ matrix.target }}
@@ -239,9 +240,9 @@ jobs:
   test-windows:
     # Preserve the existing required-check surface while the real work happens
     # in the sharded Windows jobs above.
-    if: always()
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
     needs: test-windows-shard
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex-host
     name: Bazel test on windows-latest for x86_64-pc-windows-gnullvm
 
     steps:
@@ -335,6 +336,7 @@ jobs:
         uses: ./.github/actions/check-clean-worktree
 
   clippy:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -353,7 +355,7 @@ jobs:
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
-    runs-on: ${{ matrix.runs_on || matrix.os }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os) || contains(matrix.os, '-linux-x64'))) && 'cluster-codex-host' || (matrix.runs_on || matrix.os) }}
     name: Bazel clippy on ${{ matrix.os }} for ${{ matrix.target }}
     environment:
       name: bazel
@@ -438,6 +440,7 @@ jobs:
         uses: ./.github/actions/check-clean-worktree
 
   verify-release-build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -452,7 +455,7 @@ jobs:
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
-    runs-on: ${{ matrix.runs_on || matrix.os }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os) || contains(matrix.os, '-linux-x64'))) && 'cluster-codex-host' || (matrix.runs_on || matrix.os) }}
     name: Verify release build on ${{ matrix.os }} for ${{ matrix.target }}
     environment:
       name: bazel
