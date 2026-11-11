@@ -26,7 +26,7 @@ concurrency:
 jobs:
   tag-check:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -486,7 +486,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: build
     name: Sign macOS binaries - ${{ matrix.target }} - ${{ matrix.bundle }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     timeout-minutes: 45
     environment:
       name: codesigning
@@ -885,7 +885,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: package-macos
     name: Sign macOS DMG - ${{ matrix.target }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     timeout-minutes: 45
     environment:
       name: codesigning
@@ -1196,7 +1196,7 @@ jobs:
       - build
       - finalize-macos
       - build-windows
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
 
@@ -1252,7 +1252,7 @@ jobs:
       - stage-npm-packages
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always() && needs.tag-check.result == 'success' && needs.build.result == 'success' && needs.finalize-macos.result == 'success' && needs.build-windows.result == 'success' && needs.argument-comment-lint-release-assets.result == 'success' && needs.stage-npm-packages.result == 'success') }}
     name: release
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: write
     outputs:
@@ -1419,7 +1419,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: publish-dotslash
     needs: release
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: write
 
@@ -1450,12 +1450,15 @@ jobs:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && needs.release.outputs.should_publish_npm == 'true') }}
     name: publish-npm
     needs: release
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       id-token: write # Required for OIDC
       contents: read
 
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Setup Node.js
         uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
@@ -1606,7 +1609,7 @@ jobs:
     # Only trigger the deploy for a stable release.
     # The deploy updates developers.openai.com with the new config schema json file.
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && !contains(needs.release.outputs.version, '-')) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     continue-on-error: true
     permissions: {}
     environment:
@@ -1632,7 +1635,7 @@ jobs:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && !contains(needs.release.outputs.version, '-')) }}
     # This job only invokes a GitHub Action to open/update the winget-pkgs PR;
     # it does not execute Windows-only tooling, so Linux is sufficient.
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
     environment:
@@ -1660,9 +1663,12 @@ jobs:
       - release
       - publish-r2
       - publish-npm
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
 
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Update latest-alpha-cli branch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

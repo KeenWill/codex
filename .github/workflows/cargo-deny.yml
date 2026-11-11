@@ -6,7 +6,7 @@ on:
 jobs:
   cargo-deny:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     defaults:
       run:
         working-directory: ./codex-rs

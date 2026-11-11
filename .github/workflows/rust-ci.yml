@@ -8,7 +8,7 @@ jobs:
   changed:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Detect changed areas
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     outputs:
       argument_comment_lint: ${{ steps.detect.outputs.argument_comment_lint }}
       argument_comment_lint_package: ${{ steps.detect.outputs.argument_comment_lint_package }}
@@ -60,7 +60,7 @@ jobs:
   # --- Fast Cargo-native PR checks -------------------------------------------
   general:
     name: Format / etc
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     needs: changed
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true') }}
     defaults:
@@ -85,7 +85,7 @@ jobs:
 
   cargo_shear:
     name: cargo shear
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     needs: changed
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.changed.outputs.codex == 'true' || needs.changed.outputs.workflows == 'true') }}
     defaults:
@@ -109,7 +109,7 @@ jobs:
 
   argument_comment_lint_package:
     name: Argument comment lint package
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     needs: changed
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.changed.outputs.argument_comment_lint_package == 'true') }}
     env:
@@ -165,7 +165,7 @@ jobs:
   argument_comment_lint_prebuilt:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex' || (matrix.runs_on || matrix.runner) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
     timeout-minutes: ${{ matrix.timeout_minutes }}
     needs: changed
     environment:
@@ -229,7 +229,7 @@ jobs:
         argument_comment_lint_prebuilt,
       ]
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     steps:
       - name: Summarize
         shell: bash

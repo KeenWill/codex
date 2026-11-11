@@ -10,7 +10,7 @@ jobs:
   build-windows-binaries:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build Windows binaries - ${{ matrix.runner }} - ${{ matrix.target }} - ${{ matrix.bundle }}
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64')) && 'cluster-codex' || (matrix.runs_on) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64')) && 'cluster-codex-host' || (matrix.runs_on) }}
     # Windows release builds can exceed an hour, so keep the timeout aligned
     # with the top-level release build headroom.
     timeout-minutes: 90
@@ -152,7 +152,7 @@ jobs:
     needs:
       - build-windows-binaries
     name: Build Windows symbols - ${{ matrix.target }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     timeout-minutes: 15
     permissions:
       contents: read
@@ -197,7 +197,7 @@ jobs:
     needs:
       - build-windows-binaries
     name: Build - ${{ matrix.runner }} - ${{ matrix.target }}
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64')) && 'cluster-codex' || (matrix.runs_on) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64')) && 'cluster-codex-host' || (matrix.runs_on) }}
     environment:
       name: azure-artifact-signing
       deployment: false

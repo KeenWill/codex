@@ -10,7 +10,7 @@ jobs:
     name: Translate non-English issue
     # Prevent runs on forks (requires OpenAI API key, wastes Actions minutes)
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     environment: issue-triage
     permissions:
       contents: read
@@ -63,7 +63,7 @@ jobs:
     name: Update issue with English translation
     needs: translate-issue
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.translate-issue.result == 'success') }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
       issues: write

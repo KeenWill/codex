@@ -13,7 +13,7 @@ jobs:
   general:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Format / etc
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     defaults:
       run:
         working-directory: codex-rs
@@ -33,7 +33,7 @@ jobs:
   cargo_shear:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: cargo shear
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     defaults:
       run:
         working-directory: codex-rs
@@ -52,7 +52,7 @@ jobs:
   argument_comment_lint_package:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Argument comment lint package
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     env:
       CARGO_DYLINT_VERSION: 5.0.0
       DYLINT_LINK_VERSION: 5.0.0
@@ -547,7 +547,7 @@ jobs:
         tests_windows_arm64,
       ]
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     steps:
       - name: Summarize
         shell: bash

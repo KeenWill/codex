@@ -11,13 +11,16 @@ jobs:
     name: Identify potential duplicates (all issues)
     # Prevent runs on forks (requires OpenAI API key, wastes Actions minutes)
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-deduplicate'))) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     environment: issue-triage
     permissions:
       contents: read
     outputs:
       codex_output: ${{ steps.codex-all.outputs.final-message }}
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Prepare Codex inputs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -101,7 +104,7 @@ jobs:
     name: Normalize pass 1 output
     needs: gather-duplicates-all
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.gather-duplicates-all.result == 'success') }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions: {}
     outputs:
       issues_json: ${{ steps.normalize-all.outputs.issues_json }}
@@ -164,6 +167,9 @@ jobs:
     outputs:
       codex_output: ${{ steps.codex-open.outputs.final-message }}
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Prepare Codex inputs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -245,7 +251,7 @@ jobs:
     name: Normalize pass 2 output
     needs: gather-duplicates-open
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.gather-duplicates-open.result == 'success') }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions: {}
     outputs:
       issues_json: ${{ steps.normalize-open.outputs.issues_json }}
@@ -302,7 +308,7 @@ jobs:
       - normalize-duplicates-all
       - normalize-duplicates-open
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always() && needs.normalize-duplicates-all.result == 'success' && (needs.normalize-duplicates-open.result == 'success' || needs.normalize-duplicates-open.result == 'skipped')) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
     outputs:
@@ -356,11 +362,14 @@ jobs:
     name: Comment with potential duplicates
     needs: select-final
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always() && needs.select-final.result == 'success') }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
       issues: write
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Comment on issue
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:

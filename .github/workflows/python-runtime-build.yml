@@ -12,11 +12,14 @@ jobs:
   build-python-runtime:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
     name: build-python-runtime
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
 
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:

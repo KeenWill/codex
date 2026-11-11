@@ -13,7 +13,7 @@ jobs:
   resolve-python-release:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
     name: resolve-python-release
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
     outputs:
@@ -84,7 +84,7 @@ jobs:
     needs:
       - prepare-python-runtime
       - resolve-python-release
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     environment: pypi
     permissions:
       contents: read
@@ -163,7 +163,7 @@ jobs:
     needs:
       - publish-python-runtime
       - resolve-python-release
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
 
@@ -219,7 +219,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: publish-python-sdk
     needs: build-python-sdk
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     environment: pypi
     permissions:
       contents: read

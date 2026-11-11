@@ -58,7 +58,7 @@ jobs:
       - repo-checks
       - rust-ci
       - sdk
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     steps:
       # Keep the helper on the same combined revision as the child workflows so
       # the merge gate evaluates the exact candidate they validated.

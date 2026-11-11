@@ -16,7 +16,7 @@ concurrency:
 jobs:
   metadata:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     outputs:
       release_tag: ${{ steps.release_tag.outputs.release_tag }}
 
@@ -53,7 +53,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build zsh (Linux) - ${{ matrix.variant }} - ${{ matrix.target }}
     needs: metadata
-    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex' || (matrix.runner) }}
+    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runner) }}
     timeout-minutes: 30
     container:
       image: ${{ matrix.image }}
@@ -107,7 +107,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build zsh (macOS) - ${{ matrix.variant }} - ${{ matrix.target }}
     needs: metadata
-    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex' || (matrix.runner) }}
+    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runner) }}
     timeout-minutes: 30
 
     strategy:
@@ -153,7 +153,7 @@ jobs:
       - metadata
       - linux
       - darwin
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: write
       actions: read

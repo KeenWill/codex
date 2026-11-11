@@ -11,7 +11,7 @@ jobs:
     name: Generate label suggestions
     # Prevent runs on forks (requires OpenAI API key, wastes Actions minutes)
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex' && (github.event.action == 'opened' || (github.event.action == 'labeled' && github.event.label.name == 'codex-label'))) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     environment: issue-triage
     permissions:
       contents: read
@@ -110,7 +110,7 @@ jobs:
     name: Apply labels from Codex output
     needs: gather-labels
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (needs.gather-labels.result != 'skipped') }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     permissions:
       contents: read
       issues: write
@@ -120,6 +120,9 @@ jobs:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       CODEX_OUTPUT: ${{ needs.gather-labels.outputs.codex_output }}
     steps:
+      - name: Install GitHub CLI on the cluster runner
+        if: runner.environment == 'self-hosted' && runner.os == 'Linux'
+        run: nix profile install nixpkgs#gh
       - name: Apply labels
         run: |
           json=${CODEX_OUTPUT//$'\r'/}

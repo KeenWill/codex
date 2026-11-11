@@ -44,7 +44,7 @@ jobs:
           # - os: ubuntu-24.04-arm
           #   target: aarch64-unknown-linux-gnu
 
-    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os)) && 'cluster-codex' || (matrix.os) }}
+    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os)) && 'cluster-codex-host' || (matrix.os) }}
 
     # Configure a human readable name for each job
     name: Bazel test on ${{ matrix.os }} for ${{ matrix.target }}
@@ -242,7 +242,7 @@ jobs:
     # in the sharded Windows jobs above.
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
     needs: test-windows-shard
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     name: Bazel test on windows-latest for x86_64-pc-windows-gnullvm
 
     steps:
@@ -355,7 +355,7 @@ jobs:
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os)) && 'cluster-codex' || (matrix.runs_on || matrix.os) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os)) && 'cluster-codex-host' || (matrix.runs_on || matrix.os) }}
     name: Bazel clippy on ${{ matrix.os }} for ${{ matrix.target }}
     environment:
       name: bazel
@@ -455,7 +455,7 @@ jobs:
             runs_on:
               group: ${{ github.event.repository.name }}-runners
               labels: ${{ github.event.repository.name }}-windows-x64
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os)) && 'cluster-codex' || (matrix.runs_on || matrix.os) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.os)) && 'cluster-codex-host' || (matrix.runs_on || matrix.os) }}
     name: Verify release build on ${{ matrix.os }} for ${{ matrix.target }}
     environment:
       name: bazel

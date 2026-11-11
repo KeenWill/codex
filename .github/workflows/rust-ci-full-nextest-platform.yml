@@ -430,7 +430,7 @@ jobs:
     name: Platform result
     needs: shard
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     steps:
       - name: Confirm test shards passed
         shell: bash

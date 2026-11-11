@@ -15,14 +15,14 @@ env:
 jobs:
   skip:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!inputs.publish) }}
-    runs-on: cluster-codex
+    runs-on: cluster-codex-host
     steps:
       - run: echo "Skipping argument-comment-lint release assets for prerelease tag"
 
   build:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (inputs.publish) }}
     name: Build - ${{ matrix.runner }} - ${{ matrix.target }}
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex' || (matrix.runs_on || matrix.runner) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
     timeout-minutes: 60
     env:
       CARGO_DYLINT_VERSION: 5.0.0
