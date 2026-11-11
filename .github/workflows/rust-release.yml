@@ -1450,7 +1450,9 @@ jobs:
     if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (!cancelled() && needs.release.result == 'success' && needs.release.outputs.should_publish_npm == 'true') }}
     name: publish-npm
     needs: release
-    runs-on: cluster-codex-host
+    # npm trusted publishing does not support self-hosted runners.
+    # Keep this exception until an authorized publishing mechanism is available.
+    runs-on: ubuntu-latest
     permissions:
       id-token: write # Required for OIDC
       contents: read
