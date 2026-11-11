@@ -10,9 +10,9 @@ on:
 
 jobs:
   build-python-runtime:
-    if: github.repository == 'openai/codex'
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'openai/codex') }}
     name: build-python-runtime
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex
     permissions:
       contents: read
 

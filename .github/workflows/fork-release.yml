@@ -15,8 +15,8 @@ env:
   CODEX_REPO_ROOT: ${{ github.workspace }}
 jobs:
   tests:
-    if: github.repository == 'KeenWill/codex'
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'KeenWill/codex') }}
+    runs-on: cluster-codex-host
     timeout-minutes: 180
     env:
       CARGO_PROFILE_DEV_DEBUG: "0"
@@ -57,8 +57,8 @@ jobs:
         working-directory: codex-rs
         run: just test -p codex-exec -p codex-app-server --test-threads=1
   build:
-    if: github.repository == 'KeenWill/codex'
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.repository == 'KeenWill/codex') }}
+    runs-on: cluster-codex
     timeout-minutes: 180
     env:
       TARGET: x86_64-unknown-linux-musl
@@ -137,8 +137,9 @@ jobs:
           name: fork-linux
           path: dist/*
   release:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs: [tests, build]
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex
     permissions:
       contents: write
       issues: write

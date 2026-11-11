@@ -11,8 +11,9 @@ on:
 jobs:
   # --- CI that doesn't need specific targets ---------------------------------
   general:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Format / etc
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex
     defaults:
       run:
         working-directory: codex-rs
@@ -30,8 +31,9 @@ jobs:
         run: just bench-smoke
 
   cargo_shear:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: cargo shear
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex
     defaults:
       run:
         working-directory: codex-rs
@@ -48,8 +50,9 @@ jobs:
         run: cargo shear --deny-warnings
 
   argument_comment_lint_package:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Argument comment lint package
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex
     env:
       CARGO_DYLINT_VERSION: 5.0.0
       DYLINT_LINK_VERSION: 5.0.0
@@ -90,8 +93,9 @@ jobs:
           RUST_MIN_STACK: "8388608" # 8 MiB
 
   argument_comment_lint_prebuilt:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
     timeout-minutes: 30
     environment:
       name: bazel
@@ -151,8 +155,9 @@ jobs:
 
   # --- CI to validate on different os/targets --------------------------------
   lint_build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Lint/Build — ${{ matrix.runner }} - ${{ matrix.target }}${{ matrix.profile == 'release' && ' (release)' || '' }}
-    runs-on: ${{ matrix.runs_on || matrix.runner }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
     timeout-minutes: 30
     defaults:
       run:
@@ -541,8 +546,8 @@ jobs:
         tests_windows_x64,
         tests_windows_arm64,
       ]
-    if: always()
-    runs-on: ubuntu-24.04
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
+    runs-on: cluster-codex
     steps:
       - name: Summarize
         shell: bash

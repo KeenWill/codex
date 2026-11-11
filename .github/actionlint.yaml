@@ -1,0 +1,4 @@
+self-hosted-runner:
+  labels:
+    - cluster-codex
+    - cluster-codex-host

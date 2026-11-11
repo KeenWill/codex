@@ -16,7 +16,8 @@ concurrency:
 
 jobs:
   metadata:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: cluster-codex
     outputs:
       release_tag: ${{ steps.release_tag.outputs.release_tag }}
       v8_version: ${{ steps.v8_version.outputs.version }}
@@ -58,9 +59,10 @@ jobs:
           echo "release_tag=${release_tag}" >> "$GITHUB_OUTPUT"
 
   build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build ${{ matrix.variant }} ${{ matrix.target }}
     needs: metadata
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex' || (matrix.runner) }}
     permissions:
       contents: read
       actions: read
@@ -286,9 +288,10 @@ jobs:
           path: dist/${{ matrix.target }}/*
 
   build-windows-source:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build ptrcomp-sandbox ${{ matrix.target }} from source
     needs: metadata
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex' || (matrix.runner) }}
     permissions:
       contents: read
     strategy:
@@ -422,11 +425,12 @@ jobs:
           path: dist/${{ matrix.target }}/*
 
   publish-release:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     needs:
       - metadata
       - build
       - build-windows-source
-    runs-on: ubuntu-latest
+    runs-on: cluster-codex
     permissions:
       contents: write
       actions: read

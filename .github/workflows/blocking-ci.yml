@@ -49,7 +49,7 @@ jobs:
     name: CI required
     # Without `always()`, GitHub skips this job after a failed dependency and a
     # required check can appear successful instead of reporting the failure.
-    if: ${{ always() }}
+    if: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (always()) }}
     needs:
       - bazel
       - blob-size-policy
@@ -58,7 +58,7 @@ jobs:
       - repo-checks
       - rust-ci
       - sdk
-    runs-on: ubuntu-24.04
+    runs-on: cluster-codex
     steps:
       # Keep the helper on the same combined revision as the child workflows so
       # the merge gate evaluates the exact candidate they validated.
