@@ -165,7 +165,7 @@ jobs:
   argument_comment_lint_prebuilt:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Argument comment lint - ${{ matrix.name }}
-    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
+    runs-on: ${{ (contains(toJSON(matrix.runs_on), '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner) || contains(matrix.runner, '-linux-x64'))) && 'cluster-codex-host' || (matrix.runs_on || matrix.runner) }}
     timeout-minutes: ${{ matrix.timeout_minutes }}
     needs: changed
     environment:

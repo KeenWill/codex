@@ -62,7 +62,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build ${{ matrix.variant }} ${{ matrix.target }}
     needs: metadata
-    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runner) }}
+    runs-on: ${{ ((contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner) || contains(matrix.runner, '-linux-x64'))) && 'cluster-codex-host' || (matrix.runner) }}
     permissions:
       contents: read
       actions: read
@@ -291,7 +291,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build ptrcomp-sandbox ${{ matrix.target }} from source
     needs: metadata
-    runs-on: ${{ (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner)) && 'cluster-codex-host' || (matrix.runner) }}
+    runs-on: ${{ ((contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), matrix.runner) || contains(matrix.runner, '-linux-x64'))) && 'cluster-codex-host' || (matrix.runner) }}
     permissions:
       contents: read
     strategy:

@@ -52,7 +52,7 @@ jobs:
   archive:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Build nextest archive
-    runs-on: ${{ (contains(inputs.archive_runner_labels, '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), inputs.archive_runner) || (inputs.archive_runner == '' && inputs.archive_runner_group == '' && (contains(inputs.runner_labels, '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), inputs.runner)))) && 'cluster-codex-host' || (inputs.archive_runner_group != '' && fromJSON(format('{{"group":"{0}","labels":"{1}"}}', inputs.archive_runner_group, inputs.archive_runner_labels)) || inputs.archive_runner != '' && inputs.archive_runner || inputs.runner_group != '' && fromJSON(format('{{"group":"{0}","labels":"{1}"}}', inputs.runner_group, inputs.runner_labels)) || inputs.runner) }}
+    runs-on: ${{ (contains(inputs.archive_runner_labels, '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), inputs.archive_runner) || contains(inputs.archive_runner, '-linux-x64')) || (inputs.archive_runner == '' && inputs.archive_runner_group == '' && (contains(inputs.runner_labels, '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), inputs.runner) || contains(inputs.runner, '-linux-x64'))))) && 'cluster-codex-host' || (inputs.archive_runner_group != '' && fromJSON(format('{{"group":"{0}","labels":"{1}"}}', inputs.archive_runner_group, inputs.archive_runner_labels)) || inputs.archive_runner != '' && inputs.archive_runner || inputs.runner_group != '' && fromJSON(format('{{"group":"{0}","labels":"{1}"}}', inputs.runner_group, inputs.runner_labels)) || inputs.runner) }}
     timeout-minutes: 60
     defaults:
       run:
@@ -270,7 +270,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Tests shard ${{ matrix.shard }}/4
     needs: archive
-    runs-on: ${{ (contains(inputs.runner_labels, '-linux-x64') || contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), inputs.runner)) && 'cluster-codex-host' || (inputs.runner_group != '' && fromJSON(format('{{"group":"{0}","labels":"{1}"}}', inputs.runner_group, inputs.runner_labels)) || inputs.runner) }}
+    runs-on: ${{ (contains(inputs.runner_labels, '-linux-x64') || (contains(fromJSON('["ubuntu-latest","ubuntu-24.04","ubuntu-22.04","ubuntu-20.04"]'), inputs.runner) || contains(inputs.runner, '-linux-x64'))) && 'cluster-codex-host' || (inputs.runner_group != '' && fromJSON(format('{{"group":"{0}","labels":"{1}"}}', inputs.runner_group, inputs.runner_labels)) || inputs.runner) }}
     timeout-minutes: 60
     defaults:
       run:
